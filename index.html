@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Extensions Manager UI</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #0f172a, #1e293b);
+      color: white;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-buttons p {
+      padding: 0.4rem 1.2rem;
+      border-radius: 25px;
+      cursor: pointer;
+      background-color: #334155;
+      color: white;
+      transition: background-color 0.2s;
+      user-select: none;
+    }
+
+    .filter-buttons p:hover {
+      background-color: #475569;
+    }
+
+    .filter-buttons .active {
+      background-color: #e11d48;
+      color: white;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 2rem;
+    }
+
+    .grid-style {
+      background-color: #1e293b;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, opacity 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      opacity: 1;
+    }
+
+    .grid-style:hover {
+      transform: translateY(-5px);
+    }
+
+    .grid-style img {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .grid-style h6 {
+      font-size: 1rem;
+      margin: 1rem 0 0.3rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .description {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 1rem;
+      min-height: 48px;
+    }
+
+    button.remove-btn {
+      background-color: #334155;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: auto;
+      transition: background-color 0.2s;
+      align-self: stretch;
+    }
+
+    button.remove-btn:hover {
+      background-color: #475569;
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      background-color: #e11d48;
+      border-radius: 50px;
+      position: relative;
+      flex-shrink: 0;
+      cursor: pointer;
+      
+    }
+
+    .toggle::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background-color: rgb(111, 25, 169);
+      border-radius: 50%;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .grid-style[data-active="true"] .toggle::before {
+      transform: translateX(16px);
+      background-color: #10b981;
+    }
+  </style>
+</head>
+<body>
+  <h1>Browser Extensions Manager</h1>
+
+  <!-- Filter buttons -->
+  <div class="filter-buttons">
+    <p id="allBtn" class="active" onclick="showAll()">All</p>
+    <p id="activeBtn" onclick="showActive()">Active</p>
+    <p id="inactiveBtn" onclick="showInactive()">Inactive</p>
+  </div>
+
+  <!-- Cards container -->
+  <div class="grid-container" id="gridContainer">
+    <!-- Cards will be loaded here dynamically -->
+  </div>
+
+  <script>
+    const gridContainer = document.getElementById("gridContainer");
+
+    // Hardcoded JSON data
+    const extensionsData = [
+      {
+        "logo": "logo-devlens.svg",
+        "name": "DevLens",
+        "description": "Quickly inspect page layouts and visualize element boundaries.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-style-spy.svg",
+        "name": "StyleSpy",
+        "description": "Instantly analyze and copy CSS from any webpage element.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-speed-boost.svg",
+        "name": "SpeedBoost",
+        "description": "Optimizes browser resource usage to accelerate page loading.",
+        "isActive": false
+      },
+      {
+        "logo": "logo-json-wizard.svg",
+        "name": "JSONWizard",
+        "description": "Formats, validates, and prettifies JSON responses in-browser.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-tab-master-pro.svg",
+        "name": "TabMaster Pro",
+        "description": "Organizes browser tabs into groups and sessions.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-viewport-buddy.svg",
+        "name": "ViewportBuddy",
+        "description": "Simulates various screen resolutions directly within the browser.",
+        "isActive": false
+      },
+      {
+        "logo": "logo-markup-notes.svg",
+        "name": "Markup Notes",
+        "description": "Enables annotation and notes directly onto webpages for collaborative debugging.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-grid-guides.svg",
+        "name": "GridGuides",
+        "description": "Overlay customizable grids and alignment guides on any webpage.",
+        "isActive": false
+      },
+      {
+        "logo": "logo-palette-picker.svg",
+        "name": "Palette Picker",
+        "description": "Instantly extracts color palettes from any webpage.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-link-checker.svg",
+        "name": "LinkChecker",
+        "description": "Scans and highlights broken links on any page.",
+        "isActive": true
+      },
+      {
+        "logo": "logo-dom-snapshot.svg",
+        "name": "DOM Snapshot",
+        "description": "Capture and export DOM structures quickly.",
+        "isActive": false
+      },
+      {
+        "logo": "logo-console-plus.svg",
+        "name": "ConsolePlus",
+        "description": "Enhanced developer console with advanced filtering and logging.",
+        "isActive": true
+      }
+    ];
+
+    // Create a card element for an extension
+    function createCard(extension) {
+      const card = document.createElement("div");
+      card.classList.add("grid-style");
+      card.setAttribute("data-active", extension.isActive);
+
+      const img = document.createElement("img");
+      img.src = extension.logo;
+      img.alt = extension.name;
+
+      const title = document.createElement("h6");
+      title.textContent = extension.name;
+
+      const toggleSpan = document.createElement("span");
+      toggleSpan.classList.add("toggle");
+      title.appendChild(toggleSpan);
+
+      // Add toggle click event
+      toggleSpan.addEventListener("click", () => {
+        const currentActive = card.getAttribute("data-active") === "true";
+        card.setAttribute("data-active", !currentActive);
+        extension.isActive = !currentActive;
+
+        // Get currently selected filter tab id
+        const activeFilter = document.querySelector(".filter-buttons p.active").id;
+
+        if (activeFilter === "activeBtn") {
+          if (!extension.isActive) {
+            card.style.opacity = 0;
+            setTimeout(() => {
+              card.style.display = "none";
+            }, 300);
+          } else {
+            card.style.display = "flex";
+            setTimeout(() => {
+              card.style.opacity = 1;
+            }, 10);
+          }
+        } else if (activeFilter === "inactiveBtn") {
+          if (extension.isActive) {
+            card.style.opacity = 0;
+            setTimeout(() => {
+              card.style.display = "none";
+            }, 300);
+          } else {
+            card.style.display = "flex";
+            setTimeout(() => {
+              card.style.opacity = 1;
+            }, 10);
+          }
+        } else {
+          // For 'All' filter, show the card immediately
+          card.style.display = "flex";
+          setTimeout(() => {
+            card.style.opacity = 1;
+          }, 10);
+        }
+      });
+
+      const description = document.createElement("p");
+      description.classList.add("description");
+      description.textContent = extension.description;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.classList.add("remove-btn");
+      removeBtn.textContent = "Remove";
+      removeBtn.onclick = () => removeCard(removeBtn);
+
+      card.appendChild(img);
+      card.appendChild(title);
+      card.appendChild(description);
+      card.appendChild(removeBtn);
+
+      return card;
+    }
+
+    // Load extensions and render cards
+    function loadExtensions() {
+      gridContainer.innerHTML = "";
+      extensionsData.forEach(extension => {
+        const card = createCard(extension);
+        gridContainer.appendChild(card);
+      });
+    }
+
+    // Update active filter button styles
+    const setActiveButton = (id) => {
+      document.getElementById("allBtn").classList.remove("active");
+      document.getElementById("activeBtn").classList.remove("active");
+      document.getElementById("inactiveBtn").classList.remove("active");
+      document.getElementById(id).classList.add("active");
+    };
+
+    // Show all extensions
+    const showAll = () => {
+      setActiveButton("allBtn");
+      const cards = document.getElementsByClassName("grid-style");
+      for (let i = 0; i < cards.length; i++) {
+        cards[i].style.display = "flex";
+        cards[i].style.opacity = 1;
+      }
+    };
+
+    // Show only active extensions
+    const showActive = () => {
+      setActiveButton("activeBtn");
+      const cards = document.getElementsByClassName("grid-style");
+      for (let i = 0; i < cards.length; i++) {
+        const isActive = cards[i].getAttribute("data-active") === "true";
+        if (isActive) {
+          cards[i].style.display = "flex";
+          cards[i].style.opacity = 1;
+        } else {
+          cards[i].style.opacity = 0;
+          setTimeout(() => {
+            cards[i].style.display = "none";
+          }, 300);
+        }
+      }
+    };
+
+    // Show only inactive extensions
+    const showInactive = () => {
+      setActiveButton("inactiveBtn");
+      const cards = document.getElementsByClassName("grid-style");
+      for (let i = 0; i < cards.length; i++) {
+        const isActive = cards[i].getAttribute("data-active") === "true";
+        if (!isActive) {
+          cards[i].style.display = "flex";
+          cards[i].style.opacity = 1;
+        } else {
+          cards[i].style.opacity = 0;
+          setTimeout(() => {
+            cards[i].style.display = "none";
+          }, 300);
+        }
+      }
+    };
+
+    // Remove card from UI
+    const removeCard = (btn) => {
+      const card = btn.closest(".grid-style");
+      card.style.opacity = 0;
+      setTimeout(() => {
+        card.remove();
+      }, 300);
+    };
+
+    // Load extensions on page load
+    window.onload = loadExtensions;
+  </script>
+</body>
+</html>
+
